@@ -34,6 +34,11 @@ set APP_PORT=8080 && docker compose up --build
 
 The application will be available at `http://localhost:8080`.
 
+If `APP_PORT` is not provided, the application defaults to port `8080`:
+```bash
+docker compose up --build
+```
+
 ## Endpoints
 
 ### `POST /wallets/{wallet_id}/stocks/{stock_name}`

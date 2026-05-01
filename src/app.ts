@@ -122,6 +122,34 @@ app.get('/stocks', async (req, res) => {
 	}
 })
 
+app.post('/stocks', async (req, res) => {
+	const { stocks } = req.body
+	const client = await pool.connect()
+	try {
+		await client.query('BEGIN')
+		for (const { name, quantity } of stocks) {
+			const stockResult = await client.query('SELECT stock_id FROM stock WHERE stock_name=$1', [name])
+			if (stockResult.rows.length == 0) {
+				await client.query('ROLLBACK')
+				return res.status(404).json({ error: `Stock ${name} not found` })
+			}
+			const stock_id = stockResult.rows[0].stock_id
+			await client.query(
+				'INSERT INTO bank (stock_id, quantity) VALUES ($1,$2) ON CONFLICT (stock_id) DO UPDATE SET quantity=$2',
+				[stock_id, quantity],
+			)
+		}
+		await client.query('COMMIT')
+		res.status(200).json({})
+	} catch (err) {
+		await client.query('ROLLBACK')
+		console.error(err)
+		res.status(500).json({ error: 'Server error' })
+	} finally {
+		client.release()
+	}
+})
+
 app.post('/chaos', (req, res) => {
 	res.status(200).json({})
 	process.exit(1)

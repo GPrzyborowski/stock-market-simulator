@@ -32,7 +32,7 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - '3000:80'
+      - "${APP_PORT}:80"
     depends_on:
       - app1
       - app2

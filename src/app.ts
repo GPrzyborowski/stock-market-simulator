@@ -20,7 +20,7 @@ app.post('/wallets/:wallet_id/stocks/:stock_name', async (req, res) => {
 		await client.query('BEGIN')
 
 		const stockResult = await client.query('SELECT stock_id FROM stock WHERE stock_name=$1', [stock_name])
-		if (stockResult.rows.length == 0) {
+		if (stockResult.rows.length === 0) {
 			await client.query('ROLLBACK')
 			res.status(404).json({ error: 'Stock not found' })
 			return
@@ -32,7 +32,7 @@ app.post('/wallets/:wallet_id/stocks/:stock_name', async (req, res) => {
 		const bankResult = await client.query('SELECT quantity FROM bank WHERE stock_id=$1 FOR UPDATE', [stock_id])
 		const bankQuantity = bankResult.rows[0]?.quantity ?? 0
 
-		if (type == 'buy') {
+		if (type === 'buy') {
 			if (bankQuantity < 1) {
 				await client.query('ROLLBACK')
 				res.status(400).json({ error: 'No stock available in bank' })
@@ -43,7 +43,7 @@ app.post('/wallets/:wallet_id/stocks/:stock_name', async (req, res) => {
 				'INSERT INTO ownership (wallet_id, stock_id, quantity) VALUES ($1,$2,1) ON CONFLICT (wallet_id, stock_id) DO UPDATE SET quantity=ownership.quantity+1',
 				[wallet_id, stock_id],
 			)
-		} else if (type == 'sell') {
+		} else if (type === 'sell') {
 			const ownershipResult = await client.query(
 				'SELECT quantity FROM ownership WHERE wallet_id=$1 AND stock_id=$2 FOR UPDATE',
 				[wallet_id, stock_id],
@@ -76,7 +76,7 @@ app.post('/wallets/:wallet_id/stocks/:stock_name', async (req, res) => {
 	} catch (err) {
 		await client.query('ROLLBACK')
 		console.error(err)
-		res.status(500).json({ error: 'Server error' })
+		return res.status(500).json({ error: 'Server error' })
 	} finally {
 		client.release()
 	}
@@ -129,7 +129,7 @@ app.post('/stocks', async (req, res) => {
 		await client.query('BEGIN')
 		for (const { name, quantity } of stocks) {
 			const stockResult = await client.query('SELECT stock_id FROM stock WHERE stock_name=$1', [name])
-			if (stockResult.rows.length == 0) {
+			if (stockResult.rows.length === 0) {
 				await client.query('ROLLBACK')
 				return res.status(404).json({ error: `Stock ${name} not found` })
 			}
@@ -144,9 +144,21 @@ app.post('/stocks', async (req, res) => {
 	} catch (err) {
 		await client.query('ROLLBACK')
 		console.error(err)
-		res.status(500).json({ error: 'Server error' })
+		return res.status(500).json({ error: 'Server error' })
 	} finally {
 		client.release()
+	}
+})
+
+app.get('/log', async (req, res) => {
+	try {
+		const result = await pool.query(
+			'SELECT a.type, a.wallet_id, s.stock_name FROM audit_log a JOIN stock s ON a.stock_id=s.stock_id ORDER BY a.log_id',
+		)
+		res.status(200).json({ log: result.rows })
+	} catch (err) {
+		console.error(err)
+		return res.status(500).json({ error: 'Server error' })
 	}
 })
 

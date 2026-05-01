@@ -96,6 +96,20 @@ app.get('/wallets/:wallet_id', async (req, res) => {
 	}
 })
 
+app.get('/wallets/:wallet_id/stocks/:stock_name', async (req, res) => {
+	const { wallet_id, stock_name } = req.params
+	try {
+		const result = await pool.query(
+			'SELECT o.quantity FROM ownership o JOIN stock s ON o.stock_id=s.stock_id WHERE o.wallet_id=$1 AND s.stock_name=$2',
+			[wallet_id, stock_name],
+		)
+		res.status(200).json(result.rows[0]?.quantity ?? 0)
+	} catch (err) {
+		console.error(err)
+		return res.status(500).json({ error: 'Server error' })
+	}
+})
+
 app.post('/chaos', (req, res) => {
 	res.status(200).json({})
 	process.exit(1)

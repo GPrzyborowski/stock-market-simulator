@@ -19,17 +19,17 @@ If one app instance is killed (for example via `POST /chaos`), nginx automatical
 
 **Linux / macOS (x64 & arm64):**
 ```bash
-APP_PORT=8080 docker-compose up --build
+APP_PORT=8080 docker compose up --build
 ```
 
 **Windows (PowerShell):**
 ```powershell
-$env:APP_PORT=8080; docker-compose up --build
+$env:APP_PORT=8080; docker compose up --build
 ```
 
 **Windows (CMD):**
 ```cmd
-set APP_PORT=8080 && docker-compose up --build
+set APP_PORT=8080 && docker compose up --build
 ```
 
 The application will be available at `http://localhost:8080`.
@@ -129,7 +129,7 @@ Returns full audit log of all wallet operations in order of occurrence.
 ---
 
 ### `POST /chaos`
-Kills the instance that serves this request. The other instance continues serving traffic.
+Kills the instance that serves this request. Thanks to load balancing, the application remains available.
 
 ---
 
@@ -144,10 +144,10 @@ Kills the instance that serves this request. The other instance continues servin
 ## Stopping
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 To also remove the database volume:
 ```bash
-docker-compose down -v
+docker compose down -v
 ```

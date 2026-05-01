@@ -36,5 +36,5 @@ CREATE TABLE IF NOT EXISTS audit_log (
 INSERT INTO stock (stock_name) VALUES
 ('AAPL'),
 ('GOOG'),
-('MSFT')
+('RELY')
 ON CONFLICT DO NOTHING;

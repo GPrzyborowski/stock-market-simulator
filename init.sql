@@ -11,12 +11,15 @@ CREATE TABLE IF NOT EXISTS ownership (
     wallet_id TEXT,
     stock_id INT,
     quantity INT NOT NULL CHECK (quantity >= 0),
-    PRIMARY KEY (wallet_id, stock_id)
+    PRIMARY KEY (wallet_id, stock_id),
+    FOREIGN KEY (wallet_id) REFERENCES wallet(wallet_id),
+    FOREIGN KEY (stock_id) REFERENCES stock(stock_id)
 );
 
 CREATE TABLE IF NOT EXISTS bank (
     stock_id INT PRIMARY KEY,
-    quantity INT NOT NULL CHECK (quantity >= 0)
+    quantity INT NOT NULL CHECK (quantity >= 0),
+    FOREIGN KEY (stock_id) REFERENCES stock(stock_id)
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -24,7 +27,9 @@ CREATE TABLE IF NOT EXISTS audit_log (
     wallet_id TEXT,
     stock_id INT,
     type TEXT CHECK (type IN ('buy', 'sell')),
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (wallet_id) REFERENCES wallet(wallet_id),
+    FOREIGN KEY (stock_id) REFERENCES stock(stock_id)
 );
 
 -- seed
@@ -33,9 +38,3 @@ INSERT INTO stock (stock_name) VALUES
 ('GOOG'),
 ('MSFT')
 ON CONFLICT DO NOTHING;
-
-INSERT INTO bank (stock_id, quantity)
-SELECT s.stock_id, 100
-FROM stock s
-LEFT JOIN bank b ON b.stock_id = s.stock_id
-WHERE b.stock_id IS NULL;

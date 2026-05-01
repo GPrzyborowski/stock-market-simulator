@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import pool from './db'
 
-const PORT = parseInt(process.env.PORT || '3000')
+const PORT = parseInt(process.argv[2] || '3000', 10)
 const app = express()
 
 app.use(cors())

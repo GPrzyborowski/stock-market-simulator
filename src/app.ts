@@ -76,9 +76,23 @@ app.post('/wallets/:wallet_id/stocks/:stock_name', async (req, res) => {
 	} catch (err) {
 		await client.query('ROLLBACK')
 		console.error(err)
-		return res.status(500).json({ error: 'Server error' })
+		res.status(500).json({ error: 'Server error' })
 	} finally {
 		client.release()
+	}
+})
+
+app.get('/wallets/:wallet_id', async (req, res) => {
+	const { wallet_id } = req.params
+	try {
+		const result = await pool.query(
+			'SELECT s.stock_name AS name, o.quantity FROM ownership o JOIN stock s ON o.stock_id=s.stock_id WHERE o.wallet_id=$1 ORDER BY s.stock_name',
+			[wallet_id],
+		)
+		res.status(200).json({ id: wallet_id, stocks: result.rows })
+	} catch (err) {
+		console.error(err)
+		return res.status(500).json({ error: 'Server error' })
 	}
 })
 
